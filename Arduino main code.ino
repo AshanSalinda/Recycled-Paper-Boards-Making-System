@@ -7,16 +7,19 @@ int keypad();                           //function prototypes
 int getIrValue(int);
 int getTemperature();
 void getUserInput();
-void irChecker(int, int);
+void actuatorChecker();
+void starting();
 void drying();
 void warning();
 void display(int);
 void buzzer(int);
 void actuator(int);
 void blenderStepper();
-void blenderDCMotor();
+void blending();
 void thicknessStepper();
-void sizingStepper();
+void sizing();
+
+void (*func[4])() = {&blending, &thicknessStepper, &sizing, &drying};       //array of four functions
 
 #define fan_pin 22                      //Pin declaration for components
 #define coil_pin 24
@@ -97,72 +100,34 @@ void setup() {
 
 void loop() {
   display(step);                        //Display particular message according to step number
-  
-  switch (step){    
+
+  switch(step){
     case 1:
-      for(int i=100; i<200; i+=10){      //must rotate 13rounds for set actuator to starting point
-        actuator(-1);                    //Set actuator to starting point, Rotate actuator CCW
-        display(i);                      //Display process by percentage
-      }
-      actuator(-3);                      //Set actuator to starting point, Rotate actuator CCW
-      display(200);                      //Display process by percentage
-    break;
-    
+      starting();
+      break;
     case 2:
     case 3:
-    case 4: 
-    case 5:                             
-      getUserInput();                    //get input from user and validate it                 
-      break;
-
+    case 4:
+    case 5:
+      getUserInput();
+    break;    
     case 6:
-      irChecker(1, 13);                  //check IR no1 and in here there are 13 rounds to end point of actuator  
-      blenderDCMotor();                  //Start blender DC motor
-      display(110);                      //Display process by percentage
-      blenderStepper();                  //Start blender Stepper motor
-      display(120);                      //Display process by percentage
-      actuator(3);                       //Set actuator to thikness setting point, Rotate actuator CW
-    break;
-      
     case 7:
-      irChecker(2, 10);                  //check IR no2 and in here there are 10 rounds to end point of actuator
-      thicknessStepper();                //Rotate Thikness Stepper
-      display(140);                      //Display process by percentage
-        if (size == 1)
-          actuator(2);                   //Set actuator to Sizing point 01, Rotate actuator CW
-        else if (size == 2)
-          actuator(4);                   //Set actuator to Sizing point 02, Rotate actuator CW   
-    break;                 
-
     case 8:
-      if (size == 1){
-        irChecker(3, 8);                 //check IR no3 and in here there are 8 rounds to end point of actuator
-        sizingStepper();                 //Rotate Sizing Stepper
-        display(160);                    //Display process by percentage
-        actuator(5);                     //Set actuator to Drying point, Rotate actuator CW
-      }   
-                  
-      else if (size == 2){  
-        irChecker(4, 6);                 //check IR no4 and in here there are 6 rounds to end point of actuator
-        sizingStepper();                 //Rotate Sizing Stepper
-        display(160);                    //Display process by percentage
-        actuator(3);                     //Set actuator to Drying point, Rotate actuator CW         
-      }
-    break;
-              
     case 9:
-      irChecker(5, 3);                   //check IR no5 and in here there are 3 rounds to end point of actuator
-      drying();                          //Do the drying Function
-      actuator(3);                       //Set actuator to end point, Rotate actuator CW    
+      actuatorChecker();
+      func[step-6]();
+      if(step==9) display(190);         //Display process by percentage
+      else        display(step*20);     //Display process by percentage
+      actuator(0);                      //Set actuator to thikness setting point, Rotate actuator CW
     break;
-        
-    case 10:                             //At the End
-      keypad();                          //Get input for restart
-      step = 0;                          //restart  
-    }
-
+    case 10:
+      keypad();                         //Get input for restart
+      step = 0;                         //restart 
+  }
+  
   delay(500);
-  step++;                                //go to next step
+  step++;
 }
 
 void getUserInput(){
@@ -182,28 +147,31 @@ void getUserInput(){
       break; 
     }
 
-    switch(step){
-      case 2:
-        size = input_value;             //Assign inputkey to size, only when step 2
-      break;                            // 1- 3x3, 2- 5x5 inch
-
-      case 3:      
-        thickness = input_value;         //Assign inputkey to thikness only when step 3
-      break;                            // 1- 3mm, 2- 5mm
-    }  
+    if(step==2) size = input_value;              //Assign inputkey to size, only when step 2        1- 3x3, 2- 5x5 inch
+    if(step==3) thickness = input_value;         //Assign inputkey to thikness only when step 3     1- 3mm, 2- 5mm
 }
 
-void irChecker(int irNumber, int actuatorRotation){
+void actuatorChecker(){
+  int irNumber, irValue;
+  switch(step){
+    case 6: irNumber = 1; break;
+    case 7: irNumber = 2; break;
+    case 8:
+      if(size==1)   irNumber = 3;
+      if(size==2)   irNumber = 4;
+    break;
+    case 9: irNumber = 5; break;  
+  }
 
-  int irValue = getIrValue(irNumber);    //Getting Input from particular IR for Check whether actuator arrived or not
+  irValue = getIrValue(irNumber);        //Getting Input from particular IR for Check whether actuator arrived or not
   if(irValue==1){                        //If not..
-    actuator(actuatorRotation);          //Set actuator to end point, Rotate actuator CW
+    actuator(1);                         //Set actuator to end point, Rotate actuator CW
     display(98);                         //display error message 
     warning();                           //blinking Backlight & beeping
   }
 }
 
-void display(int id) {
+void display(int id){
 
   if(id<100) {
     lcd.clear();
@@ -342,7 +310,7 @@ void display(int id) {
   }
 }
 
-int keypad() {
+int keypad(){
   int key[4];
   while (true) {
     if(step==10){
@@ -368,7 +336,41 @@ int keypad() {
   }
 }
 
-void actuator(int round){
+void starting(){
+  int percentage, irValue=1;
+    for(percentage=100; percentage<200; percentage+=10){
+      display(percentage);               //Display process by percentage
+      actuator(0);                       //Set actuator to starting point, Rotate actuator CCW
+      irValue = getIrValue(1);           //check value of 1st IR sensor
+      if (irValue == 0)  break;
+    }
+  display(200);                          //Display process by percentage
+}
+
+void actuator(int isError){
+  int toNext, toEnd, round;
+
+  switch(step){
+    case 1:
+      toNext = -1; toEnd = 0;   break;
+    case 6:
+      toNext = 3;  toEnd = 13;  break;
+    case 7:
+      toEnd = 10;
+      if (size==1) toNext = 2;
+      if (size==2) toNext = 4;
+      break;
+    case 8:
+      if (size==1) toNext = 5;  toEnd = 8;
+      if (size==2) toNext = 3;  toEnd = 6;
+      break;
+    case 9:
+      toNext = 3;  toEnd = 3;
+  }
+
+  if(isError==1)  round = toEnd;
+  else round = toNext;
+
   actuatorStepper.setSpeed(15);          //set Motor Speed
   actuatorStepper.step(round*2048);      //2048 = steps per revolution
 
@@ -378,10 +380,13 @@ void actuator(int round){
   digitalWrite(actuator_IN4, LOW);
 }
 
-void blenderDCMotor(){
-  digitalWrite(blenderMotor, HIGH);      //Switch on blender DC motor
-  delay(5000);
-  digitalWrite(blenderMotor, LOW);       //Switch off blender DC motor
+void blending(){
+  digitalWrite(blenderMotor, HIGH);  //Switch on blender DC motor
+  delay(5000);                       //Blending time
+  digitalWrite(blenderMotor, LOW);   //Switch off blender DC motor
+
+  display(110);                      //Display process by percentage
+  blenderStepper();                  //Start blender Stepper motor
 }
 
 void blenderStepper() {
@@ -414,7 +419,7 @@ void thicknessStepper() {
   digitalWrite(thicknessStepper_IN4, LOW);    
 }
 
-void sizingStepper() {
+void sizing() {
   sizingStepperMotor.setSpeed(10);      //set Motor Speed
   if (size == 1) {                      //If Size 01 chosen
     sizingStepperMotor.step(512);       //Rotate Sizing stepper CW
@@ -437,14 +442,13 @@ void drying(){
   digitalWrite(fan_pin, HIGH);              //Switch on Fans  
   digitalWrite(coil_pin, HIGH);             //Switch on coil
   for(int i=0; i<10; i++){
+      if(i==5)     display(180);            //Display process by percentage
+
       temperature= getTemperature();        //Check temperature 10 times
-      if(i==4)
-      {  display(180);   }                  //Display process by percentage
-      if(i==8)
-      {  display(190);   }                  //Display process by percentage
       if(temperature>50){
          digitalWrite(coil_pin, LOW);       //Switch off coil
-      } 
+      }
+       
       delay(1000);      
   }
   digitalWrite(fan_pin, LOW);               //Switch off Fans
@@ -482,6 +486,6 @@ void warning(){
     delay(500);
     lcd.noBacklight();
     delay(500); 
-    buzzer(500);                         //buzzering_time = 500
+    buzzer(500);                         //buzzing_time = 500
   }
 }
