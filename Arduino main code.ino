@@ -8,10 +8,10 @@ int thiknessIR();
 int sizingIR_1();
 int sizingIR_2();
 int getTemperature();
-int motorController(int x);
+int functionSelector(int x);
 void drying();
 void warning();
-void buzzer(int x);
+void buzzer(int buzzing_time);
 void display(int x);
 void actuator(int round);
 void blenderStepper();
@@ -19,7 +19,7 @@ void blenderDCMotor();
 void thiknessStepper();
 void sizingStepper();
 
-#define fan_pin 22                      //Pin declaration for components 
+#define fan_pin 22                      //Pin declaration for components
 #define coil_pin 24
 #define blenderMotor 26
 #define buzzer_pin 7
@@ -73,24 +73,24 @@ int input_value, size, thikness, step=5;
 //step 12 - Completed
 
 void setup() {
-  lcd.init();                           // initialize the lcd
+  lcd.init();                           // Initialize the lcd
   lcd.backlight();                      // Turn on the LCD screen backlight
   lcd.begin(20, 4);
 
-  pinMode(key1, INPUT_PULLUP);          //Pin declarition of keypad
-  pinMode(key2, INPUT_PULLUP);          //Pin declarition of keypad
-  pinMode(key3, INPUT_PULLUP);          //Pin declarition of keypad
-  pinMode(key4, INPUT_PULLUP);          //Pin declarition of keypad
-  pinMode(thiknessIR, INPUT);           //Pin declarition of Thikness IR
-  pinMode(sizingIR_1, INPUT);           //Pin declarition of Sizing IR 1
-  pinMode(sizingIR_2, INPUT);           //Pin declarition of Sizing IR 2  
-  pinMode(blenderMotor, OUTPUT);        //Pin declarition of blender DC Motor
-  pinMode(fan_pin, OUTPUT);             //Pin declarition of Fan
-  pinMode(coil_pin, OUTPUT);            //Pin declarition of coil
-  pinMode(buzzer_pin , OUTPUT);         //Pin declarition of buzzer
+  pinMode(key1, INPUT_PULLUP);          // Pin declarition of keypad
+  pinMode(key2, INPUT_PULLUP);          // Pin declarition of keypad
+  pinMode(key3, INPUT_PULLUP);          // Pin declarition of keypad
+  pinMode(key4, INPUT_PULLUP);          // Pin declarition of keypad
+  pinMode(thiknessIR, INPUT);           // Pin declarition of Thikness IR
+  pinMode(sizingIR_1, INPUT);           // Pin declarition of Sizing IR 1
+  pinMode(sizingIR_2, INPUT);           // Pin declarition of Sizing IR 2  
+  pinMode(blenderMotor, OUTPUT);        // Pin declarition of blender DC Motor
+  pinMode(fan_pin, OUTPUT);             // Pin declarition of Fan
+  pinMode(coil_pin, OUTPUT);            // Pin declarition of coil
+  pinMode(buzzer_pin , OUTPUT);         // Pin declarition of buzzer
   
-  display(0);                           //Display wait
-  motorController(0);                   //Set actuator to starting point
+  display(0);                           // Display Starting
+  functionSelector(0);                  // Set actuator to starting point
 }
 
 void loop() {
@@ -111,6 +111,12 @@ void loop() {
           { step-=2; }                  //go back
       }          
   }
+
+  if(12>step && step>7){
+      input_value= functionSelector(step);  //Rotate particular Motor according to step number
+      if(input_value==98)
+        { display(98); }  
+  }
   
   switch (step){
     case 5:                             //Assign inputkey to size, only when step 5
@@ -118,23 +124,15 @@ void loop() {
       break;
     case 6:                             //Assign inputkey to thikness only when step 6
       thikness = input_value;           // 1- 3mm, 2- 5mm
-      break;      
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-      input_value= motorController(step);  //Rotate particular Motor according to step number
-      if(input_value==98) display(98);     //Display Problem message and warning
       break;
     case 12:                            //At the End
       keypad(1);                        //Get input for restart
-      display(0);                       //Display wait
-      motorController(0);               //Set actuator to starting point 
-      step = 4;                         //restart 
+      display(0);                       //Display Starting
+      functionSelector(0);              //Set actuator to starting point 
+      step = 4;                         //restart  
   }
-
   delay(500);
-  step++;                               //go to next step
+  step++;
 }
 
 void display(int x) {
@@ -142,8 +140,8 @@ void display(int x) {
   switch (x){
     case 0:                               //Starting
       lcd.clear();
-      lcd.setCursor(5, 1);
-      lcd.print("PLEASE WAIT");
+      lcd.setCursor(5, 0);
+      lcd.print("STARTING..");
       delay(200);
       lcd.setCursor(2, 3);
       lcd.print("DO NOT POWER OFF");    
@@ -193,23 +191,23 @@ void display(int x) {
 
     case 8:                               //Blending
       lcd.clear();
-      lcd.setCursor(6, 1);
+      lcd.setCursor(6, 0);
       lcd.print("BLENDING");
-      lcd.setCursor(8, 2);
-      lcd.print("10 %");
+      lcd.setCursor(9, 2);
+      lcd.print("0 %");
     break;
 
     case 9:                               //Setting Thikness
       lcd.clear();
-      lcd.setCursor(2, 1);
+      lcd.setCursor(2, 0);
       lcd.print("SETTING THIKNESS");
       lcd.setCursor(8, 2);
-      lcd.print("25 %");
+      lcd.print("30 %");
     break;
       
     case 10:                              //Sizing
       lcd.clear();
-      lcd.setCursor(7, 1);
+      lcd.setCursor(7, 0);
       lcd.print("SIZING");
       lcd.setCursor(8, 2);
       lcd.print("50 %");
@@ -217,24 +215,36 @@ void display(int x) {
 
     case 11:                              //Drying
       lcd.clear();
-      lcd.setCursor(7, 1);
+      lcd.setCursor(7, 0);
       lcd.print("DRYING");
       lcd.setCursor(8, 2);
-      lcd.print("75 %");
+      lcd.print("70 %");
     break;
       
     case 12:                              //Completed
       lcd.clear();
-      lcd.setCursor(5, 1);
+      lcd.setCursor(5, 0);
       lcd.print("COMPLETED!");
       lcd.setCursor(8, 2);
-      lcd.print("100 %");
+      lcd.print("100%");
       delay(3000);
       lcd.setCursor(0, 3);
       lcd.print("Ps ANYKEY to restart");
     break;
 
+    case 98:                             //Warning
+      lcd.clear();
+      lcd.setCursor(6, 0);
+      lcd.print("Warning!");
+      lcd.setCursor(0, 1);
+      lcd.print("!THERE IS A PROBLEM!");
+      lcd.setCursor(1, 3);
+      lcd.print("Need a Maintenance");
+      warning();                          //blinking Backlight & beeping
+    break;
+
     case 99:                              //Invalid Input
+      lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("____________________");
       lcd.setCursor(3, 1);
@@ -245,60 +255,60 @@ void display(int x) {
       lcd.print("PRESS ANYKEY TO BACK");
     break;
 
-    default:                              //Warning
-      lcd.clear();
-      lcd.setCursor(6, 0);
-      lcd.print("Warning!");
-      lcd.setCursor(0, 1);
-      lcd.print("!THERE IS A PROBLEM!");
-      lcd.setCursor(1, 3);
-      lcd.print("Need a Maintenance");
-      warning();                          //blinking Backlight & beeping
+    default:                             //Display process by percentage, called by functionSelector
+      lcd.setCursor(8, 2);
+      lcd.print(x-100);
+      lcd.setCursor(11, 2);
+      lcd.print("%");
   }
 }
 
 int keypad(int x) {
-  int key=0;
-  for (key = 0; key == 0;) {
-    int key1s = digitalRead(key1);
-    int key2s = digitalRead(key2);
-    int key3s = digitalRead(key3);
-    int key4s = digitalRead(key4);
-    if (key1s==0) {
-      key = 1;
+
+  while (true) {
+    int key[4];
+    key[0] = digitalRead(key1);
+    key[1] = digitalRead(key2);
+    key[2] = digitalRead(key3);
+    key[3] = digitalRead(key4);
+
+    for(int i=0; i<4; i++){
+      if (key[i]==0) {                  //if i th key pressed,
+        buzzer(100);                    //buzzing_time = 100
+        return i+1;                     //return corresponding i th value 
+      }
     }
-    if (key2s==0) {
-      key = 2;
-    }
-    if (key3s==0) {
-      key = 3;
-    }
-    if (key4s==0) {
-      key = 4;
-    } 
+    
     if(x>0){
       x++;
     	if(x%30==0){                      //Set a delay using x%30
           delay(1000);
-          buzzer(1);
+          buzzer(1000);                 //buzzing_time = 1000
           delay(1000);
         }
     }
     delay(100);   
   }
-  return key;
 }
 
-int motorController (int x) {
+int functionSelector (int x) {
   int irValue=1;
   switch (x){
+    
     case 0:
-      actuator(-13);                     //Set actuator to starting point, Rotate actuator CCW
+      for(int i=100; i<200; i+=10){      //must rotate 13rounds for set actuator to starting point
+        actuator(-1);                    //Set actuator to starting point, Rotate actuator CCW
+        display(i);                      //Display process by percentage
+      }
+      actuator(-3);                      //Set actuator to starting point, Rotate actuator CCW
+      display(200);                      //Display process by percentage
       return  0;
       
     case 8:
       blenderDCMotor();                  //Start blender DC motor
+      display(110);                      //Display process by percentage
       blenderStepper();                  //Start blender Stepper motor
+      display(120);                      //Display process by percentage
       actuator(3);                       //Set actuator to thikness setting point, Rotate actuator CW
       return  0;
       
@@ -307,8 +317,9 @@ int motorController (int x) {
       if(irValue==1){                    //If not..
           actuator(10);                  //Set actuator to end point, Rotate actuator CW
           return  98;                    //Return 98 for display warning
-      }else{                             //If arrived..
+      }else{                             //If arrived..  
         thiknessStepper();               //Rotate Thikness Stepper
+        display(140);                    //Display process by percentage
           if (size == 1)
             { actuator(2); }             //Set actuator to Sizing point 01, Rotate actuator CW
           else if (size == 2)
@@ -324,6 +335,7 @@ int motorController (int x) {
               return  98;                //Return 98 for display warning
           }else{                         //If arrived..
               sizingStepper();           //Rotate Sizing Stepper
+              display(160);              //Display process by percentage
               actuator(5);               //Set actuator to Drying point, Rotate actuator CW
               return  0;
           }   
@@ -335,6 +347,7 @@ int motorController (int x) {
               return  98;                //Return 98 for display warning
           }else{                         //If arrived..
               sizingStepper();           //Rotate Sizing Stepper
+              display(160);              //Display process by percentage
               actuator(3);               //Set actuator to Drying point, Rotate actuator CW
               return  0;             
           }                
@@ -382,30 +395,30 @@ void thiknessStepper() {
   } else if (thikness == 2) {
     rotation = 500;
   }
-  thiknessStepperMotor.setSpeed(10);     //set Motor Speed
-  thiknessStepperMotor.step(rotation);   //Rotate thikness stepper CW
+  thiknessStepperMotor.setSpeed(10);    //set Motor Speed
+  thiknessStepperMotor.step(rotation);  //Rotate thikness stepper CW
   delay(1000);
-  thiknessStepperMotor.step(-rotation);  //Rotate thikness stepper CCW
+  thiknessStepperMotor.step(-rotation); //Rotate thikness stepper CCW
 
-  digitalWrite(thiknessStepper_IN1, LOW);//Power off pins
+  digitalWrite(thiknessStepper_IN1, LOW); //Power off pins
   digitalWrite(thiknessStepper_IN2, LOW);
   digitalWrite(thiknessStepper_IN3, LOW);
   digitalWrite(thiknessStepper_IN4, LOW);    
 }
 
 void sizingStepper() {
-  sizingStepperMotor.setSpeed(10);       //set Motor Speed
-  if (size == 1) {                       //If Size 01 chosen
-    sizingStepperMotor.step(512);        //Rotate Sizing stepper CW
+  sizingStepperMotor.setSpeed(10);      //set Motor Speed
+  if (size == 1) {                      //If Size 01 chosen
+    sizingStepperMotor.step(512);       //Rotate Sizing stepper CW
     delay(1000);
-    sizingStepperMotor.step(-512);       //Rotate Sizing stepper CCW
-  } else if (size == 2) {                //If Size 02 Choosen
-    sizingStepperMotor.step(-512);       //Rotate Sizing stepper CCW
+    sizingStepperMotor.step(-512);      //Rotate Sizing stepper CCW
+  } else if (size == 2) {               //If Size 02 Choosen
+    sizingStepperMotor.step(-512);      //Rotate Sizing stepper CCW
     delay(1000);
-    sizingStepperMotor.step(512);        //Rotate Sizing stepper CW
+    sizingStepperMotor.step(512);       //Rotate Sizing stepper CW
   }
 
-  digitalWrite(sizingStepper_IN1, LOW);  //Power off pins
+  digitalWrite(sizingStepper_IN1, LOW); //Power off pins
   digitalWrite(sizingStepper_IN2, LOW);
   digitalWrite(sizingStepper_IN3, LOW);
   digitalWrite(sizingStepper_IN4, LOW); 
@@ -413,54 +426,55 @@ void sizingStepper() {
 
 void drying(){
   int temperature;
-  digitalWrite(fan_pin, HIGH);           //Switch on Fans  
-  digitalWrite(coil_pin, HIGH);          //Switch on coil
-  for(int i=0; i>10; i++){
-      temperature= getTemperature();        
-      if(temperature>50){                //if temperature greater than 50C
-         digitalWrite(coil_pin, LOW);    //Switch off coil
+  digitalWrite(fan_pin, HIGH);              //Switch on Fans  
+  digitalWrite(coil_pin, HIGH);             //Switch on coil
+  for(int i=0; i<10; i++){
+      temperature= getTemperature();        //Check temperature 10 times
+      if(i==4)
+      {  display(180);   }                  //Display process by percentage
+      if(i==8)
+      {  display(190);   }                  //Display process by percentage
+      if(temperature>50){                   //if temperature greater than 50C
+         digitalWrite(coil_pin, LOW);       //Switch off coil
       } 
-      delay(1000);                       //total drying time divided by 10 = 10s/10 = 1s  
+      delay(1000);                          //total drying time divided by 10 = 10s/10 = 1s
   }
-  digitalWrite(fan_pin, LOW);            //Switch off Fan
-  digitalWrite(coil_pin, LOW);           //Switch off coil
+  digitalWrite(fan_pin, LOW);               //Switch off Fans
+  digitalWrite(coil_pin, LOW);              //Switch off coil
 }
 
 int getTemperature(){
-  dht11.read11(dht11_pin);               //read temperature
-  return (dht11.temperature);            //return dht_11 output
+  dht11.read11(dht11_pin);                  //read temperature
+  return (dht11.temperature);               //return dht_11 output
 }
 
 int thiknessIR(){
-  return digitalRead(thiknessIR_pin);    //return thiknessIR output
+  return digitalRead(thiknessIR_pin);     //return thiknessIR output
 }
 
 int sizingIR_1(){
-  return digitalRead(sizingIR_1_pin);    //return sizingIR_1 output
+  return digitalRead(sizingIR_1_pin);     //return sizingIR_1 output
 }
 
 int sizingIR_2(){
-  return digitalRead(sizingIR_2_pin);    //return sizingIR_2 output
+  return digitalRead(sizingIR_2_pin);     //return sizingIR_2 output
 }
 
-void buzzer(int x){
-  switch (x){
-    case 1:                              //called by step(12), keypad(1)
-      tone(buzzer_pin, 700, 1000);      
-      break;
-    case 2:                              //called by warning function
-      tone(buzzer_pin, 700, 500);
-      break;
-  }
+void buzzer(int buzzing_time){
+  
+  tone(buzzer_pin, 700, buzzing_time);
+    //When called by keypad,                buzzing_time = 100
+    //When called by step(12), keypad(1),   buzzing_time = 1000
+    //When called by Warning function,      buzzing_time = 500
 }
 
 void warning(){
   //Warning display & buzzer, called by display(98)  
-  for(int i=1; i>0; i++){
+  while (true){
     lcd.backlight();
     delay(500);
     lcd.noBacklight();
     delay(500); 
-    buzzer(2);
+    buzzer(500);                         //buzzing_time = 500
   }
 }
