@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <Stepper.h>
 #include <LiquidCrystal_I2C.h>
+#include <string.h>
 
 int keypad();                           //function prototypes
 int getIrValue(int);
