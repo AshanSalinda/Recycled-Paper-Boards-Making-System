@@ -2,7 +2,8 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/110468346/233789980-4c282ebe-c99d-4ccb-b0ec-b0084f38a191.png" width="300"/></p>
 
-[![Watch the video](https://user-images.githubusercontent.com/110468346/233789980-4c282ebe-c99d-4ccb-b0ec-b0084f38a191.png)](https://youtu.be/M-t3oYfEWEw?si=vFKdUm2djk7FmI5V)
+[![Watch the video](https://i.sstatic.net/Vp2cE.png)](https://youtu.be/vt5fpE0bzSY)
+
 
 
 Developed an innovative waste paper recycling system to address environmental concerns and promote sustainable practices. This project aims to reduce waste and facilitate efficient recycling through automation, highlighting the importance of eco-friendly solutions in waste management.
