@@ -1,6 +1,35 @@
-# Hardware-Project
- 
- Automatic recycled paper boards making machine using waste papers
+# Waste Paper Recycling System
+
+Developed an innovative waste paper recycling system to address environmental concerns and promote sustainable practices. This project aims to reduce waste and facilitate efficient recycling through automation, highlighting the importance of eco-friendly solutions in waste management.
+
+## Components Used :
+- Arduino mega 2560,
+- 775 DC Motor,
+- 12V Grar Motor,
+- 12V Fan
+- Nema 17,
+- 5V Stepper Motors,
+- IR Sensors,
+- Ultrasonic Sensor,
+- Temperature Sensor,
+- Water Pump,
+- Dryer,
+- 20X4 LCD Display,
+- 4X1 Keypad
+
+
+## Mechanisms Used :
+- Actuator,
+- Rack and pinion,
+- Pulley system
+
+
+## Software Used :
+- Arduino IDE,
+- Blender,
+- EasyEDA,
+- Proteus
+
 
 
 *Please visit the [Wiki](https://github.com/AshanSalinda/Hardware-Project/wiki) for related documentation.*
