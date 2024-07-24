@@ -5,6 +5,9 @@
 
 [![](https://markdown-videos-api.jorgenkh.no/youtube/M-t3oYfEWEw)](https://youtu.be/M-t3oYfEWEw)
 
+[![](https://markdown-videos-api.jorgenkh.no/youtube/M-t3oYfEWEw)](https://web.facebook.com/100010412378582/videos/781825626969294/)
+
+
 
 
 Developed an innovative waste paper recycling system to address environmental concerns and promote sustainable practices. This project aims to reduce waste and facilitate efficient recycling through automation, highlighting the importance of eco-friendly solutions in waste management.
