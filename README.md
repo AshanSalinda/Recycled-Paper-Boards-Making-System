@@ -15,7 +15,7 @@ Developed an innovative waste paper recycling system to address environmental co
 ## Components Used :
 - Arduino mega 2560,
 - 775 DC Motor,
-- 12V Grar Motor,
+- 12V Gear Motor,
 - 12V Fan
 - Nema 17,
 - 5V Stepper Motors,
